@@ -113,7 +113,36 @@ app.post('/api/test-user', async (req, res) => {
   } catch (error) {
     res.json({ success: false, error: error.message });
   }
-});app.listen(PORT, '0.0.0.0', () => {
+  // Test user creation (GET request - easy to test in browser)
+app.get('/api/create-test-user', async (req, res) => {
+  try {
+    const testUser = new User({
+      piUserId: 'test_user_' + Date.now(),
+      username: 'TestPhotographer'
+    });
+    await testUser.save();
+    res.json({ 
+      success: true, 
+      message: 'Test user created!', 
+      user: testUser 
+    });
+  } catch (error) {
+    res.json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// Get all users
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json({ success: true, users });
+  } catch (error) {
+    res.json({ success: false, error: error.message });
+  }
+});});app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🗄️ MongoDB URI: ${process.env.MONGODB_URI ? 'Configured' : 'Not configured'}`);
 });

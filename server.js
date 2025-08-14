@@ -32,6 +32,29 @@ const nftSchema = new mongoose.Schema({
   description: { type: String, required: true },
   price: { type: Number, required: true },
   category: { type: String, required: true },
+  creator: String, // Pi Network user ID
+  status: { type: String, enum: ['available', 'sold'], default: 'available' },
+  views: { type: Number, default: 0 },
+  createdAt: { type: Date, default: Date.now }
+});
+
+// Models
+const User = mongoose.model('User', userSchema);
+const NFT = mongoose.model('NFT', nftSchema);// Database Schemas
+const userSchema = new mongoose.Schema({
+  piUserId: { type: String, unique: true, required: true },
+  username: String,
+  totalEarnings: { type: Number, default: 0 },
+  totalSales: { type: Number, default: 0 },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const nftSchema = new mongoose.Schema({
+  tokenId: { type: String, unique: true, required: true },
+  title: { type: String, required: true },
+  description: { type: String, required: true },
+  price: { type: Number, required: true },
+  category: { type: String, required: true },
   creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   status: { type: String, enum: ['available', 'sold'], default: 'available' },
   views: { type: Number, default: 0 },

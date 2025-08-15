@@ -347,3 +347,30 @@ app.post('/api/payments/complete', async (req, res) => {
         });
     }
 });
+// In server.js or your routes file
+const Pi = require('pi-backend-sdk');
+
+// Set up your SDK with credentials (outside the route, once at server startup)
+const pi = new Pi({
+  apiKey: process.env.PI_API_KEY,
+  sandbox: true // Use 'false' for production
+});
+
+app.post('/api/payments/initiate', async (req, res) => {
+  try {
+    const { amount, tokenId, buyerId } = req.body;
+
+    const payment = await pi.createPayment({
+      amount: amount, // Or parse from req.body
+      memo: `Purchase of NFT #${tokenId}`,
+      meta { tokenId, buyerId }
+    });
+
+    // Save payment.paymentId in your DB for tracking
+    // Send payment info to frontend so buyer can complete Pi Network payment
+
+    res.json({ success: true, payment });
+  } catch (error) {
+    res.status(500).json({ error: 'Payment creation failed', details: error.message });
+  }
+});

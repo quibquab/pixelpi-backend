@@ -262,3 +262,88 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📁 IPFS: ${process.env.PINATA_API_KEY ? 'Ready' : 'Not configured'}`);
 });
+// Add these routes to your server.js for Pi Network payments
+
+// Simple payment approval (for testing)
+app.post('/api/payments/approve', async (req, res) => {
+    try {
+        const { paymentId, tokenId, buyerId } = req.body;
+        
+        console.log('Payment approval request:', { paymentId, tokenId, buyerId });
+        
+        // For testnet, we can approve without full Pi Network verification
+        // In production, you'd verify with Pi Network API here
+        
+        // Check if NFT exists and is available
+        const nft = await NFT.findOne({ tokenId: tokenId });
+        if (!nft) {
+            return res.status(404).json({ error: 'NFT not found' });
+        }
+        
+        if (nft.status !== 'available') {
+            return res.status(400).json({ error: 'NFT not available for purchase' });
+        }
+        
+        console.log('Payment approved for NFT:', nft.title);
+        
+        res.json({
+            success: true,
+            message: 'Payment approved',
+            paymentId: paymentId,
+            nft: nft
+        });
+        
+    } catch (error) {
+        console.error('Payment approval error:', error);
+        res.status(500).json({ 
+            error: 'Payment approval failed',
+            details: error.message 
+        });
+    }
+});
+
+// Simple payment completion (for testing)
+app.post('/api/payments/complete', async (req, res) => {
+    try {
+        const { paymentId, txid, tokenId, buyerId } = req.body;
+        
+        console.log('Payment completion request:', { paymentId, txid, tokenId, buyerId });
+        
+        // Update NFT ownership
+        const nft = await NFT.findOneAndUpdate(
+            { tokenId: tokenId },
+            {
+                $set: {
+                    owner: buyerId,
+                    status: 'sold',
+                    soldAt: new Date(),
+                    soldPrice: parseFloat(nft.price),
+                    transactionId: txid,
+                    paymentId: paymentId
+                }
+            },
+            { new: true }
+        );
+        
+        if (!nft) {
+            return res.status(404).json({ error: 'NFT not found' });
+        }
+        
+        console.log('NFT ownership transferred:', nft.title, 'to', buyerId);
+        
+        res.json({
+            success: true,
+            message: 'NFT purchase completed successfully',
+            nft: nft,
+            paymentId: paymentId,
+            txid: txid
+        });
+        
+    } catch (error) {
+        console.error('Payment completion error:', error);
+        res.status(500).json({ 
+            error: 'Payment completion failed',
+            details: error.message 
+        });
+    }
+});
